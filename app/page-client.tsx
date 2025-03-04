@@ -6,6 +6,7 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import Tracker from "./tracker";
+import { BannerComponent } from "./bannerComponent";
 
 const PageClient = ({ data }: { data: any }) => {
   const [onboarding, setOnboarding] = useState(false);
@@ -44,7 +45,7 @@ const PageClient = ({ data }: { data: any }) => {
     <>
       {" "}
       {!onboarding ? (
-        <OnboardingScreen />
+        <BannerComponent />
       ) : (
         <Tracker
           videoUrl={videoUrl}
