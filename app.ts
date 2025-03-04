@@ -1,5 +1,5 @@
-import { WebGLVideoRenderer } from "./core/webgl-renderer";
 import PointData from "./core/point-data";
+import { WebGLVideoRenderer } from "./core/webgl-renderer";
 import { Point2D } from "./types";
 
 import {
@@ -182,8 +182,15 @@ export class App {
         const refImg = document.getElementById(
           "reference-image"
         ) as HTMLImageElement;
-        const refWidth = refImg.naturalWidth;
-        const refHeight = refImg.naturalHeight;
+
+        const max_size = CONFIG.MAX_PATTERN_SIZE || 512; // Default if not defined
+        const scale = Math.min(
+          max_size / refImg.width,
+          max_size / refImg.height
+        );
+
+        const refWidth = Math.floor(refImg.width * scale);
+        const refHeight = Math.floor(refImg.height * scale);
 
         if (this.glCanvas) {
           this.glCanvas.style.display = "block";

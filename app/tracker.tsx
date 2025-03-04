@@ -102,11 +102,7 @@ const Tracker = ({
         primary_color={bannerData.primary_color}
         secondary_color={bannerData.secondary_color}
       />
-      <img
-        id="reference-image"
-        src="https://storage.googleapis.com/zingcam/original/images/y4x90r1cm4extw0cfzol43nt.jpg"
-        alt="Reference"
-      />
+      <img id="reference-image" src={image_url} alt="Reference" />
       <video ref={videoRef} id="camera-input" autoPlay />
     </>
   );

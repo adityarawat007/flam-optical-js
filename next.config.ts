@@ -10,6 +10,13 @@ const nextConfig: NextConfig = {
         pathname: "/**",
         search: "",
       },
+      {
+        protocol: "https",
+        hostname: "zingcam.cdn.flamapp.com",
+        port: "",
+        pathname: "/**",
+        search: "",
+      },
     ],
   },
 };
