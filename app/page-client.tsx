@@ -3,7 +3,6 @@
 
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import Tracker from "./tracker";
 import { BannerComponent } from "./bannerComponent";
@@ -27,25 +26,11 @@ const PageClient = ({ data }: { data: any }) => {
     secondary_color: experience?.ui_elements?.banners?.secondary_color,
   };
 
-  function OnboardingScreen() {
-    return (
-      <div className="flex flex-col items-center justify-center h-full w-full">
-        <Button
-          className="font-bold text-xl"
-          size="lg"
-          onClick={() => setOnboarding(true)}
-        >
-          Start Experience
-        </Button>
-      </div>
-    );
-  }
-
   return (
     <>
       {" "}
       {!onboarding ? (
-        <BannerComponent />
+        <BannerComponent setOnboading={setOnboarding} />
       ) : (
         <Tracker
           videoUrl={videoUrl}
