@@ -3,7 +3,6 @@
 
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 import App from "../app";
 import Banner from "./banner";
@@ -31,7 +30,7 @@ const Tracker = ({
   const canvasRef = useRef<any>(null);
   const videoRef = useRef<any>(null);
   const errorRef = useRef<any>(null);
-  
+
   useEffect(() => {
     const fetchData = async () => {
       try {

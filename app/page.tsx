@@ -2,12 +2,15 @@
 import { notFound } from "next/navigation";
 import PageClient from "./page-client";
 
-export default async function PreviewPage({
-  searchParams,
-}: {
-  searchParams: { o?: string };
+export default async function PreviewPage(props: {
+  searchParams: Promise<{ o: string }>;
 }) {
-  const o = searchParams?.o;
+  const { o } = await props.searchParams;
+
+  if (!o) {
+    notFound();
+  }
+
   const res = await fetch(
     `https://zingcam.prod.flamapp.com/campaign-svc/api/v1/campaigns/${o}/experiences`
   );

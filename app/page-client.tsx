@@ -4,8 +4,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { notFound, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Tracker from "./tracker";
 
 const PageClient = ({ data }: { data: any }) => {
@@ -26,15 +25,6 @@ const PageClient = ({ data }: { data: any }) => {
     primary_color: experience?.ui_elements?.banners?.primary_color,
     secondary_color: experience?.ui_elements?.banners?.secondary_color,
   };
-
-  const searchParams = useSearchParams();
-  const o = searchParams.get("o");
-
-  useEffect(() => {
-    if (!o) {
-      notFound();
-    }
-  }, [o]);
 
   function OnboardingScreen() {
     return (
