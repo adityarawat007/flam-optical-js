@@ -1,0 +1,296 @@
+:root {
+  --color-primary: #2c3e50;
+  --color-secondary: #3498db;
+  --color-accent: #27ae60;
+  --color-background: #f5f5f5;
+  --color-text: #333333;
+  --color-error: #e74c3c;
+  --font-main: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--color-background);
+  color: var(--color-text);
+  line-height: 1.6;
+}
+
+.app-container {
+  width: 100%;
+  height: 100%;
+}
+
+main {
+  width: 100%;
+  height: 100%;
+}
+
+header {
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+h1 {
+  color: var(--color-primary);
+  font-size: 1.8rem;
+}
+
+.content-area {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  height: 100%;
+}
+
+@media (min-width: 768px) {
+  .content-area {
+    flex-direction: row;
+  }
+
+  #canvas-container {
+    flex: 2;
+  }
+
+  .controls-area {
+    flex: 1;
+  }
+}
+
+#canvas-container {
+  position: relative;
+  background-color: #000;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  height: 100%;
+}
+
+#output-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.controls-area {
+  background-color: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#controls-container {
+  margin-bottom: 20px;
+}
+
+.reference-image-container {
+  padding: 10px 0;
+}
+
+.reference-image-container h3 {
+  margin-bottom: 10px;
+  font-size: 1rem;
+  color: var(--color-primary);
+}
+
+#reference-image {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  display: none; /* Hide reference image */
+}
+
+.stats-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 8px 12px;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.error-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--color-error);
+  color: white;
+  padding: 15px 20px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Hide video element but keep it in the DOM for processing */
+#camera-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Status display styles */
+.stats-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 8px 12px;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.metric {
+  flex: 1;
+  min-width: 120px;
+}
+
+.metric-name {
+  opacity: 0.8;
+  margin-right: 4px;
+}
+
+.metric-value {
+  font-weight: bold;
+}
+
+.tracking-active,
+.tracking-inactive {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-indicator {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.tracking-active .status-indicator {
+  background-color: #27ae60;
+  box-shadow: 0 0 5px rgba(39, 174, 96, 0.8);
+}
+
+.tracking-inactive .status-indicator {
+  background-color: #e74c3c;
+  box-shadow: 0 0 5px rgba(231, 76, 60, 0.8);
+}
+
+.error {
+  color: #e74c3c;
+}
+
+.success {
+  color: #27ae60;
+}
+
+/* Control panel styles */
+.dg.main {
+  width: 100% !important;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.dg .c select {
+  width: 100% !important;
+}
+
+#canvas-container {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+}
+
+/* This class is used for "fill" mode (stretches to fill) */
+#canvas-container.fill-mode #output-canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* This class is used for "contain" mode (maintains aspect ratio) */
+#canvas-container.contain-mode #output-canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background-color: #000;
+  object-fit: cover;
+}
+
+/* This class is used for "cover" mode (fills while maintaining aspect) */
+#canvas-container.cover-mode #output-canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Mode toggle button */
+.mode-toggle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 100;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Debug info */
+.debug-info {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 5px;
+  font-family: monospace;
+  font-size: 10px;
+  z-index: 90;
+}
