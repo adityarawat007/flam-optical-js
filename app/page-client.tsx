@@ -95,7 +95,7 @@ const Tracker = ({
         title={bannerData.title}
         sub_title={bannerData.sub_title}
         redirect_url={bannerData.redirect_url}
-        show={true}
+        show={bannerData.show}
         primary_color={bannerData.primary_color}
         secondary_color={bannerData.secondary_color}
       />
@@ -108,11 +108,6 @@ const Tracker = ({
         id="camera-input"
         autoPlay
         muted
-        onLoadedData={() => {
-          videoRef.current
-            ?.play()
-            .catch((err: any) => console.error("Autoplay failed:", err));
-        }}
       />
     </>
   );
