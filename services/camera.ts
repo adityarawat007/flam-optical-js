@@ -94,6 +94,8 @@ export class CameraService {
       let constraints: MediaStreamConstraints = {
         video: {
           facingMode: config?.facingMode || "environment",
+          width: window.innerWidth,
+          height: window.innerHeight,
         },
         audio: false,
       };

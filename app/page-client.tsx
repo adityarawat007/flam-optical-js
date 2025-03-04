@@ -1,115 +1,71 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/exhaustive-deps */
+
 "use client";
 
-import { useEffect, useRef } from "react";
-import App from "../app";
-import Banner from "./banner";
+import { Button } from "@/components/ui/button";
+import { notFound, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import Tracker from "./tracker";
 
-const Tracker = ({
-  videoUrl,
-  bannerData,
-  image_url,
-  variant_offset,
-  variant_scale_axis,
-}: {
-  videoUrl: string;
-  bannerData: {
-    title: string;
-    sub_title: string;
-    redirect_url: string;
-    show: boolean;
-    primary_color: string;
-    secondary_color: string;
+const PageClient = ({ data }: { data: any }) => {
+  const [onboarding, setOnboarding] = useState(false);
+
+  const experience = data?.data?.experiences[0];
+
+  const videoUrl = experience?.videos?.compressed;
+  const imageUrl = experience?.images?.compressed;
+
+  const bannerData = {
+    title: experience?.ui_elements?.banners?.title,
+    sub_title: experience?.ui_elements?.banners?.sub_title,
+    redirect_url: experience?.ui_elements?.banners?.redirection_url,
+    show:
+      !experience?.ui_elements?.banners ||
+      experience?.ui_elements?.banners?.variant !== 0,
+    primary_color: experience?.ui_elements?.banners?.primary_color,
+    secondary_color: experience?.ui_elements?.banners?.secondary_color,
   };
-  image_url: string;
-  variant_offset: any;
-  variant_scale_axis: any;
-}) => {
-  const canvasRef = useRef<any>(null);
-  const videoRef = useRef<any>(null);
-  const errorRef = useRef<any>(null);
+
+  const searchParams = useSearchParams();
+  const o = searchParams.get("o");
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const app = new App(
-          "output-canvas",
-          "camera-input",
-          "stats-panel",
-          "glCanvas",
-          image_url,
-          videoUrl,
-          variant_offset,
-          variant_scale_axis
-        );
-
-        await app.initialize();
-        app.processFrame();
-
-        window.addEventListener("beforeunload", () => app.cleanup());
-      } catch (error: any) {
-        console.error("Error loading campaign:", error);
-        showError(error.message);
-      }
-    };
-
-    if (videoUrl) fetchData();
-  }, [videoUrl]);
-
-  const showError = (message: any) => {
-    if (errorRef.current) {
-      errorRef.current.textContent = message;
-      errorRef.current.classList.remove("hidden");
+    if (!o) {
+      notFound();
     }
-  };
+  }, [o]);
 
-  useEffect(() => {
-    window.addEventListener("resize", resizeCanvas);
-    resizeCanvas();
-    return () => window.removeEventListener("resize", resizeCanvas);
-  }, []);
-
-  const resizeCanvas = () => {
-    if (canvasRef.current && videoRef.current) {
-      canvasRef.current.width = window.innerWidth;
-      canvasRef.current.height = window.innerHeight;
-      videoRef.current.width = window.innerWidth;
-      videoRef.current.height = window.innerHeight;
-    }
-  };
+  function OnboardingScreen() {
+    return (
+      <div className="flex flex-col items-center justify-center h-full w-full">
+        <Button
+          className="font-bold text-xl"
+          size="lg"
+          onClick={() => setOnboarding(true)}
+        >
+          Start Experience
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <>
-      <div className="content-area h-screen w-screen">
-        <div id="canvas-container">
-          <canvas id="output-canvas" />
-          <canvas id="glCanvas" />
-          <div
-            ref={errorRef}
-            id="error-message"
-            className="error-message hidden"
-          />
-          <div id="stats-panel" className="stats-panel" />
-        </div>
-      </div>
-      <Banner
-        title={bannerData.title}
-        sub_title={bannerData.sub_title}
-        redirect_url={bannerData.redirect_url}
-        show={bannerData.show}
-        primary_color={bannerData.primary_color}
-        secondary_color={bannerData.secondary_color}
-      />
-      <img
-        id="reference-image"
-        src="https://storage.googleapis.com/zingcam/original/images/y4x90r1cm4extw0cfzol43nt.jpg"
-        alt="Reference"
-      />
-      <video
-        id="camera-input"
-        autoPlay
-      />
+      {" "}
+      {!onboarding ? (
+        <OnboardingScreen />
+      ) : (
+        <Tracker
+          videoUrl={videoUrl}
+          bannerData={bannerData}
+          image_url={imageUrl}
+          variant_offset={experience?.variant?.offset}
+          variant_scale_axis={experience?.variant?.scale_axis}
+        />
+      )}
     </>
   );
 };
 
-export default Tracker;
+export default PageClient;
