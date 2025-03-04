@@ -107,7 +107,6 @@ const Tracker = ({
       <video
         id="camera-input"
         autoPlay
-        muted
       />
     </>
   );
