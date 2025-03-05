@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import {
   Sheet,
   SheetContent,
@@ -15,12 +15,33 @@ import { Button } from "@/components/ui/button";
 
 export const BannerComponent = ({
   setOnboading,
+  showBanner,
+  setShowBanner
 }: {
+  showBanner: boolean;
   setOnboading: (value: boolean) => void;
+  setShowBanner: (value: boolean) => void;
 }) => {
+
+  const sheetRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sheetRef.current && !sheetRef.current.contains(event.target as Node)) {
+        setShowBanner(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [sheetRef, setShowBanner]);
+
   return (
-    <Sheet open={true}>
+    <Sheet open={showBanner} >
       <SheetContent
+      ref={sheetRef}
         side="bottom"
         className=" border-0 max-w-3xl my-2 mx-auto select-none bg-transparent backdrop-blur-3xl rounded-4xl w-full "
       >
