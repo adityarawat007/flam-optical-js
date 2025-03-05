@@ -21,6 +21,7 @@ export const BannerComponent = ({
   setOnboading: (value: boolean) => void;
   setShowBanner: (value: boolean) => void;
 }) => {
+
   const sheetRef = useRef<HTMLDivElement>(null);
   const [isClosing, setIsClosing] = useState(false);
 
@@ -45,6 +46,7 @@ export const BannerComponent = ({
   }, [sheetRef, setShowBanner]);
 
   return (
+
     <Sheet open={showBanner}>
       <SheetContent
         ref={sheetRef}

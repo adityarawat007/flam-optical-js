@@ -12,6 +12,7 @@ const PageClient = ({ data }: { data: any }) => {
   const [onboarding, setOnboarding] = useState(false);
   const [showBanner, setShowBanner] = useState(true);
 
+
   const experience = data?.data?.experiences[0];
 
   const videoUrl = experience?.videos?.compressed;
