@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 
 const PageClient = ({ data }: { data: any }) => {
   const [onboarding, setOnboarding] = useState(false);
-  const [showBanner, setShowBanner] = useState(false);
+  const [showBanner, setShowBanner] = useState(true);
+
 
   const experience = data?.data?.experiences[0];
 
@@ -33,7 +34,7 @@ const PageClient = ({ data }: { data: any }) => {
     return (
       <div className="w-full bg-lime-300 h-full flex flex-col items-center justify-center">
         <div className="flex flex-col items-center justify-center space-y-4">
-          <h2 className="text-3xl font-bold">
+          <h2 className="text-2xl font-bold">
             Welcome To{" "}
             <span className="italic bg-clip-text text-transparent bg-gradient-to-r from-red-400 to-pink-400">
               Flam
@@ -41,7 +42,7 @@ const PageClient = ({ data }: { data: any }) => {
             Experience
           </h2>
           <Button
-            className="text-2xl rounded-3xl p-6 font-medium "
+            className="text-xl rounded-xl p-6 font-medium "
             onClick={() => setShowBanner(true)}
           >
             Ready, Set Go!
