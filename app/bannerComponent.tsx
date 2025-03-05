@@ -1,17 +1,16 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React, { useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import instantBanner from "@/public/instantBanner.jpg";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 
 export const BannerComponent = ({
   setOnboading,
