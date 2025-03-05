@@ -26,6 +26,7 @@ export const CONFIG = {
     SHOW_BOUNDING_BOX: false, // Show/hide the bounding box outline
     SHOW_CORNERS: false,
     SHOW_MATCHES: false,
+    SHOW_STATS: false,  // Show/hide performance statistics
   },
   // IMAGE_URL: "https://storage.googleapis.com/zingcam/original/images/y4x90r1cm4extw0cfzol43nt.jpg"
 };

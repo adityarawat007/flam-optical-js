@@ -153,6 +153,13 @@ export interface Point2D {
   y: number;
 }
 
+export interface ProfilerMetric {
+  name: string;
+  start_time: number;
+  end_time: number;
+  delta_time: number;
+}
+
 /**
  * Interface for tracked shape corners
  */

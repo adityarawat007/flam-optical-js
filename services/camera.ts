@@ -9,6 +9,7 @@ export class CameraService {
   private listeners: Array<(event: any) => void> = [];
   public frameRequestId: number | null = null;
   private isCapturing: boolean = false;
+  private isMobile: boolean;
 
   /**
    * Creates a new CameraService instance
@@ -21,6 +22,12 @@ export class CameraService {
     if (!this.video) {
       throw new Error(`Video element with ID "${videoElementId}" not found`);
     }
+
+    // Check if we're on a mobile device
+    this.isMobile =
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      );
 
     // Create a temporary canvas if not provided
     if (canvasElementId) {
@@ -35,9 +42,9 @@ export class CameraService {
       }
     } else {
       this.canvas = document.createElement("canvas");
-      // Set canvas size to window dimensions
-      this.canvas.width = window.innerWidth;
-      this.canvas.height = window.innerHeight;
+      // Set canvas size to screen dimensions (not just window)
+      this.canvas.width = screen.width;
+      this.canvas.height = screen.height;
     }
 
     this.context = this.canvas.getContext("2d");
@@ -48,6 +55,14 @@ export class CameraService {
 
     // Add resize event listener to update canvas dimensions
     window.addEventListener("resize", this.handleResize.bind(this));
+
+    // Add orientation change listener specific for mobile
+    if (this.isMobile) {
+      window.addEventListener(
+        "orientationchange",
+        this.handleOrientationChange.bind(this)
+      );
+    }
   }
 
   /**
@@ -55,15 +70,88 @@ export class CameraService {
    */
   private handleResize(): void {
     // Update canvas dimensions on resize
-    this.canvas.width = window.innerWidth;
-    this.canvas.height = window.innerHeight;
+    this.updateCanvasDimensions();
 
     // Notify listeners about resize
     this.notifyListeners({
       type: "resize",
-      width: window.innerWidth,
-      height: window.innerHeight,
+      width: this.canvas.width,
+      height: this.canvas.height,
     });
+  }
+
+  /**
+   * Handle orientation change event (mobile specific)
+   */
+  private handleOrientationChange(): void {
+    // Small delay to allow the browser to complete orientation change
+    setTimeout(() => {
+      this.updateCanvasDimensions();
+
+      // If we have an active stream, we may need to reinitialize to get correct orientation
+      if (this.stream) {
+        this.reinitializeAfterOrientationChange();
+      }
+
+      this.notifyListeners({
+        type: "orientationchange",
+        width: this.canvas.width,
+        height: this.canvas.height,
+        orientation: window.orientation || 0,
+      });
+    }, 300);
+  }
+
+  /**
+   * Update canvas dimensions based on current viewport
+   */
+  private updateCanvasDimensions(): void {
+    // For mobile, use the screen dimensions to ensure we cover the entire viewport
+    if (this.isMobile) {
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+
+      this.canvas.width = screenWidth;
+      this.canvas.height = screenHeight;
+
+      // Also update video element dimensions to match
+      this.video.width = screenWidth;
+      this.video.height = screenHeight;
+    } else {
+      // For desktop, window dimensions are fine
+      this.canvas.width = window.innerWidth;
+      this.canvas.height = window.innerHeight;
+    }
+  }
+
+  /**
+   * Reinitialize camera after orientation changes
+   */
+  private async reinitializeAfterOrientationChange(): Promise<void> {
+    // Only needed if we have an active stream
+    if (!this.stream) return;
+
+    try {
+      // First release current camera
+      this.release();
+
+      // Short delay to ensure camera is released
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Initialize with current settings
+      await this.initialize();
+
+      // If we were capturing frames, resume
+      if (this.isCapturing) {
+        this.startCapturing();
+      }
+    } catch (error) {
+      console.error("Error reinitializing after orientation change:", error);
+      this.notifyListeners({
+        type: "error",
+        error: error instanceof Error ? error : new Error(String(error)),
+      });
+    }
   }
 
   /**
@@ -90,15 +178,37 @@ export class CameraService {
         }
       }
 
-      // Start with basic constraints that are more likely to work
-      let constraints: MediaStreamConstraints = {
-        video: {
-          facingMode: config?.facingMode || "environment",
-          width: window.innerWidth,
-          height: window.innerHeight,
-        },
-        audio: false,
-      };
+      // Get current screen dimensions
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+
+      // Update canvas dimensions
+      this.updateCanvasDimensions();
+
+      // Different constraint strategy for mobile vs desktop
+      let constraints: MediaStreamConstraints;
+
+      if (this.isMobile) {
+        // On mobile, we need to be more explicit about what we want
+        constraints = {
+          video: {
+            facingMode: config?.facingMode || "environment",
+            width: { ideal: Math.max(screenWidth, screenHeight) },
+            height: { ideal: Math.max(screenWidth, screenHeight) },
+          },
+          audio: false,
+        };
+      } else {
+        // Desktop constraints
+        constraints = {
+          video: {
+            facingMode: config?.facingMode || "environment",
+            width: { ideal: screenWidth },
+            height: { ideal: screenHeight },
+          },
+          audio: false,
+        };
+      }
 
       try {
         this.stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -108,7 +218,7 @@ export class CameraService {
           firstError
         );
 
-        // Fallback to even more basic constraints
+        // Fallback to very basic constraints
         constraints = {
           video: true,
           audio: false,
@@ -196,6 +306,14 @@ export class CameraService {
     // Remove resize event listener
     window.removeEventListener("resize", this.handleResize.bind(this));
 
+    // Remove orientation change listener if on mobile
+    if (this.isMobile) {
+      window.removeEventListener(
+        "orientationchange",
+        this.handleOrientationChange.bind(this)
+      );
+    }
+
     if (this.stream) {
       this.stream.getTracks().forEach((track) => {
         track.stop();
@@ -256,14 +374,8 @@ export class CameraService {
       !this.video.paused
     ) {
       try {
-        // Ensure canvas dimensions match current window size before drawing
-        if (
-          this.canvas.width !== window.innerWidth ||
-          this.canvas.height !== window.innerHeight
-        ) {
-          this.canvas.width = window.innerWidth;
-          this.canvas.height = window.innerHeight;
-        }
+        // Ensure canvas dimensions match current viewport
+        this.updateCanvasDimensions();
 
         // Calculate aspect ratio and position to avoid stretching
         const videoAspect = this.video.videoWidth / this.video.videoHeight;
@@ -277,16 +389,34 @@ export class CameraService {
         // Clear the canvas first
         this.context!.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        if (videoAspect > canvasAspect) {
-          // Video is wider than canvas - fit to width
-          drawWidth = this.canvas.width;
-          drawHeight = this.canvas.width / videoAspect;
-          offsetY = (this.canvas.height - drawHeight) / 2;
+        // Different approach for mobile vs desktop
+        if (this.isMobile) {
+          // On mobile, we want to fill the screen completely with the video
+          // This means potentially cropping some parts of the video
+          if (videoAspect > canvasAspect) {
+            // Video is wider - crop sides
+            drawHeight = this.canvas.height;
+            drawWidth = drawHeight * videoAspect;
+            offsetX = (this.canvas.width - drawWidth) / 2;
+          } else {
+            // Video is taller - crop top/bottom
+            drawWidth = this.canvas.width;
+            drawHeight = drawWidth / videoAspect;
+            offsetY = (this.canvas.height - drawHeight) / 2;
+          }
         } else {
-          // Video is taller than canvas - fit to height
-          drawHeight = this.canvas.height;
-          drawWidth = this.canvas.height * videoAspect;
-          offsetX = (this.canvas.width - drawWidth) / 2;
+          // Desktop approach - maintain aspect ratio
+          if (videoAspect > canvasAspect) {
+            // Video is wider than canvas - fit to width
+            drawWidth = this.canvas.width;
+            drawHeight = this.canvas.width / videoAspect;
+            offsetY = (this.canvas.height - drawHeight) / 2;
+          } else {
+            // Video is taller than canvas - fit to height
+            drawHeight = this.canvas.height;
+            drawWidth = this.canvas.height * videoAspect;
+            offsetX = (this.canvas.width - drawWidth) / 2;
+          }
         }
 
         // Draw the video frame preserving aspect ratio

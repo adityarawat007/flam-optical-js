@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import App from "../app";
 import Banner from "./banner";
 
@@ -27,9 +27,24 @@ const Tracker = ({
   variant_offset: any;
   variant_scale_axis: any;
 }) => {
-  const canvasRef = useRef<any>(null);
-  const videoRef = useRef<any>(null);
-  const errorRef = useRef<any>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const glCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const errorRef = useRef<HTMLDivElement | null>(null);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+
+  // Detect if on mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent
+        );
+      setIsMobile(mobile);
+    };
+
+    checkMobile();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,7 +52,7 @@ const Tracker = ({
         const app = new App(
           "output-canvas",
           "camera-input",
-          "stats-panel",
+          "reference-image",
           "glCanvas",
           image_url,
           videoUrl,
@@ -49,6 +64,11 @@ const Tracker = ({
         app.processFrame();
 
         window.addEventListener("beforeunload", () => app.cleanup());
+
+        return () => {
+          app.cleanup();
+          window.removeEventListener("beforeunload", () => app.cleanup());
+        };
       } catch (error: any) {
         console.error("Error loading campaign:", error);
         showError(error.message);
@@ -58,7 +78,7 @@ const Tracker = ({
     if (videoUrl) fetchData();
   }, [videoUrl]);
 
-  const showError = (message: any) => {
+  const showError = (message: string) => {
     if (errorRef.current) {
       errorRef.current.textContent = message;
       errorRef.current.classList.remove("hidden");
@@ -66,26 +86,86 @@ const Tracker = ({
   };
 
   useEffect(() => {
-    window.addEventListener("resize", resizeCanvas);
+    const handleResize = () => {
+      resizeCanvas();
+    };
+
+    const handleOrientationChange = () => {
+      // Small delay to allow the browser to complete the orientation change
+      setTimeout(resizeCanvas, 300);
+    };
+
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("orientationchange", handleOrientationChange);
+
+    // Initial setup
     resizeCanvas();
-    return () => window.removeEventListener("resize", resizeCanvas);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("orientationchange", handleOrientationChange);
+    };
   }, []);
 
   const resizeCanvas = () => {
-    if (canvasRef.current && videoRef.current) {
-      canvasRef.current.width = window.innerWidth;
-      canvasRef.current.height = window.innerHeight;
-      videoRef.current.width = window.innerWidth;
-      videoRef.current.height = window.innerHeight;
+    if (canvasRef.current && videoRef.current && glCanvasRef.current) {
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+
+      // Update canvas dimensions
+      canvasRef.current.width = screenWidth;
+      canvasRef.current.height = screenHeight;
+
+      // Update GL canvas dimensions
+      glCanvasRef.current.width = screenWidth;
+      glCanvasRef.current.height = screenHeight;
+
+      // Update video element dimensions to match
+      videoRef.current.width = screenWidth;
+      videoRef.current.height = screenHeight;
+
+      // Add specific styling for the GL canvas
+      const glCanvas = glCanvasRef.current;
+      glCanvas.style.width = "100%";
+      glCanvas.style.height = "100%";
+      glCanvas.style.position = "absolute";
+      glCanvas.style.top = "0";
+      glCanvas.style.left = "0";
+      glCanvas.style.zIndex = "5";
+
+      // Adjust canvas container for better mobile display
+      const container = document.getElementById("canvas-container");
+      if (container) {
+        container.style.width = "100%";
+        container.style.height = "100%";
+        container.style.overflow = "hidden";
+
+        // Force the container to be full viewport on mobile
+        if (isMobile) {
+          container.style.position = "fixed";
+          container.style.top = "0";
+          container.style.left = "0";
+          container.style.right = "0";
+          container.style.bottom = "0";
+        }
+      }
     }
   };
 
   return (
     <>
       <div className="content-area h-screen w-screen">
-        <div id="canvas-container">
-          <canvas ref={canvasRef} id="output-canvas" />
-          <canvas id="glCanvas" />
+        <div id="canvas-container" className="w-full h-full fixed top-0 left-0">
+          <canvas
+            ref={canvasRef}
+            id="output-canvas"
+            className="w-full h-full"
+          />
+          <canvas
+            ref={glCanvasRef}
+            id="glCanvas"
+            className="w-full h-full absolute top-0 left-0 z-5"
+          />
           <div
             ref={errorRef}
             id="error-message"
@@ -102,8 +182,20 @@ const Tracker = ({
         primary_color={bannerData.primary_color}
         secondary_color={bannerData.secondary_color}
       />
-      <img id="reference-image" src={image_url} alt="Reference" />
-      <video ref={videoRef} id="camera-input" autoPlay />
+      <img
+        id="reference-image"
+        src={image_url}
+        alt="Reference"
+        className="hidden"
+      />
+      <video
+        ref={videoRef}
+        id="camera-input"
+        autoPlay
+        playsInline
+        muted
+        className="absolute opacity-0 pointer-events-none"
+      />
     </>
   );
 };
