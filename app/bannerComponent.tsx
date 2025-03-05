@@ -49,18 +49,18 @@ export const BannerComponent = ({
       <SheetContent
         ref={sheetRef}
         side="bottom"
-        className={` border-0 max-w-3xl my-2 mx-auto select-none bg-transparent backdrop-blur-3xl rounded-4xl w-full ${
+        className={` border-0 max-w-3xl my-2 mx-auto bg-black select-none rounded-4xl w-full ${
           isClosing ? "translate-y-full" : "translate-y-0"
         } `}
       >
-        <SheetHeader className="border-0 px-2">
+        <SheetHeader className="border-0 px-2 p-0">
           <SheetTitle className="w-full">
             <Image
               src={instantBanner}
               layout="responsive"
               width={600}
               height={475}
-              className=" h-full object-cover rounded-t-4xl"
+              className="h-full object-cover rounded-t-4xl"
               alt="Instant Banner"
             />
           </SheetTitle>
