@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -15,19 +15,26 @@ import Image from "next/image";
 export const BannerComponent = ({
   setOnboading,
   showBanner,
-  setShowBanner
+  setShowBanner,
 }: {
   showBanner: boolean;
   setOnboading: (value: boolean) => void;
   setShowBanner: (value: boolean) => void;
 }) => {
-
   const sheetRef = useRef<HTMLDivElement>(null);
+  const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (sheetRef.current && !sheetRef.current.contains(event.target as Node)) {
-        setShowBanner(false);
+      if (
+        sheetRef.current &&
+        !sheetRef.current.contains(event.target as Node)
+      ) {
+        setIsClosing(true);
+        setTimeout(() => {
+          setShowBanner(false);
+          setIsClosing(false);
+        }, 300);
       }
     };
 
@@ -38,11 +45,13 @@ export const BannerComponent = ({
   }, [sheetRef, setShowBanner]);
 
   return (
-    <Sheet open={showBanner} >
+    <Sheet open={showBanner}>
       <SheetContent
-      ref={sheetRef}
+        ref={sheetRef}
         side="bottom"
-        className=" border-0 max-w-3xl my-2 mx-auto select-none bg-transparent backdrop-blur-3xl rounded-4xl w-full "
+        className={` border-0 max-w-3xl my-2 mx-auto select-none bg-transparent backdrop-blur-3xl rounded-4xl w-full ${
+          isClosing ? "translate-y-full" : "translate-y-0"
+        } `}
       >
         <SheetHeader className="border-0 px-2">
           <SheetTitle className="w-full">
